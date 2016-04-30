@@ -1,0 +1,47 @@
+plugins {
+    id 'java' // or 'groovy' Must be explicitly applied
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile(group: 'org.hbase', name: 'asynchbase', version: '1.7.1') {
+        exclude(group: 'org.jboss.netty', module: 'netty') // use io.netty:netty:3.9.4.Final
+    }
+
+    shadow group: 'org.slf4j', name: 'slf4j-api', version: '1.7.21'
+    shadow group: 'org.apache.zookeeper', name: 'zookeeper', version: '3.4.8'
+}
+
+shadowJar {
+    baseName 'asynchbase-shaded'
+    classifier ''
+    relocate 'com.google', 'org.apache.s2graph.google'
+    relocate 'org.jboss', 'org.apache.s2graph.jboss'
+    dependencies {
+        exclude(dependency('org.slf4j:slf4j-api:1.7.21'))
+        exclude(dependency('org.slf4j:log4j-over-slf4j:1.7.7'))
+        exclude(dependency('org.apache.zookeeper:zookeeper:3.4.5'))
+    }
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            from components.shadow
+            groupId 'org.apache.s2graph'
+            artifactId 'asynchbase-shaded'
+            version '1.7.1'
+        }
+    }
+
+    repositories {
+        maven {
+            url 'TBD'
+        }
+    }
+}
